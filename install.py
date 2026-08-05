@@ -117,7 +117,19 @@ def looks_like_a_crm(p):
 
 
 def find_vault():
-    guesses = [Path.home() / "CRM", Path.cwd(), Path.cwd().parent]
+    # Layer 1 leaves a pointer in the home folder naming wherever the member chose to
+    # put their CRM. Checking it first means anyone who declined the default location
+    # is not told, wrongly, that they have not done Layer 1 yet.
+    pointer = Path.home() / ".outliers-crm"
+    guesses = []
+    if pointer.exists():
+        try:
+            noted = pointer.read_text(encoding="utf-8").strip()
+            if noted:
+                guesses.append(Path(noted))
+        except Exception:
+            pass
+    guesses += [Path.home() / "CRM", Path.cwd(), Path.cwd().parent]
     for g in guesses:
         if looks_like_a_crm(g):
             say()
