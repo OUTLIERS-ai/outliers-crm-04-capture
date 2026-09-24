@@ -39,9 +39,9 @@ Use:
     ids = identity.identifiers_for(pid)     # every identifier they answer to
 
 CLI:
-    python identity.py stats                 # a summary of your records
-    python identity.py who "<identifier>"    # resolve one identifier
-    python identity.py collisions            # names that are ambiguous, for review
+    python _engine/identity.py stats                 # a summary of your records
+    python _engine/identity.py who "<identifier>"    # resolve one identifier
+    python _engine/identity.py collisions            # names that are ambiguous, for review
 """
 
 import json
@@ -54,6 +54,21 @@ from pathlib import Path
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 _FRONT = re.compile(r"^\ufeff?---\s*\n(.*?)\n---", re.S)
 _URL_IN = re.compile(r"(?:https?://)?(?:[\w-]+\.)?linkedin\.com/in/([^/?#\s\"']+)", re.I)
@@ -482,7 +497,8 @@ def main(argv):
             for f in files:
                 print("      %s" % f)
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/identity.py", "    python " + _typed("identity.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 

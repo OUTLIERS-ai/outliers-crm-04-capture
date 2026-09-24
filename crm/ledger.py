@@ -37,10 +37,10 @@ Use:
     for e in ledger.events(person="rowan-ashdown"): ...
 
 CLI:
-    python ledger.py stats                    counts by type and by source
-    python ledger.py tail [N]                 the last N events
-    python ledger.py person "<identifier>"    one person's timeline
-    python ledger.py types                    the event vocabulary
+    python _engine/ledger.py stats                    counts by type and by source
+    python _engine/ledger.py tail [N]                 the last N events
+    python _engine/ledger.py person "<identifier>"    one person's timeline
+    python _engine/ledger.py types                    the event vocabulary
 """
 
 import json
@@ -55,6 +55,21 @@ import settings                                            # noqa: E402
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 # The base vocabulary. Deliberately small and closed. Your own additions come from
 # `_engine/settings.json`, which the Layer 3 installer wrote from your answers.
@@ -255,7 +270,8 @@ def main(argv):
         for k in sorted(known):
             print("  %-18s %s" % (k, known[k]))
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/ledger.py", "    python " + _typed("ledger.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 

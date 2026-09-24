@@ -41,10 +41,10 @@ collector that double-counts corrupts every number derived from it, and the numb
 are the point.
 
 Use:
-    python collect.py list                          the collectors you have
-    python collect.py run messages <file.csv> --dry-run
-    python collect.py run messages <file.csv>
-    python collect.py all                           every source in sources.json
+    python _engine/collect.py list                          the collectors you have
+    python _engine/collect.py run messages <file.csv> --dry-run
+    python _engine/collect.py run messages <file.csv>
+    python _engine/collect.py all                           every source in sources.json
 """
 
 import csv
@@ -63,6 +63,21 @@ from safe_write import write_text                          # noqa: E402
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 try:
     import identity
@@ -526,12 +541,13 @@ def main(argv):
         results = run_all(dry_run=dry)
         if not results:
             print("No sources listed. Add one:")
-            print("  %s collect.py run messages <file.csv>" % PY)
+            print("  %s %s run messages <file.csv>" % (PY, _typed("collect.py")))
             return 0
         for label, stats in results.items():
             _report(label + ("   (dry run, nothing written)" if dry else ""), stats)
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/collect.py", "    python " + _typed("collect.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 

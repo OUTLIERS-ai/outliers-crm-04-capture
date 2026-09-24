@@ -32,9 +32,9 @@ Use:
     quiet = derive.quiet_for(60)          # who you have not spoken to in 60 days
 
 CLI:
-    python derive.py show "<identifier>"    what the log says about them
-    python derive.py quiet [days]           who has gone quiet
-    python derive.py summary                the shape of the whole log
+    python _engine/derive.py show "<identifier>"    what the log says about them
+    python _engine/derive.py quiet [days]           who has gone quiet
+    python _engine/derive.py summary                the shape of the whole log
 """
 
 import sys
@@ -48,6 +48,21 @@ import settings                                            # noqa: E402
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 # Which events count as an exchange, for counting how much conversation there has
 # been. One each way is a reply; ten each way is a relationship.
@@ -237,7 +252,7 @@ def main(argv):
             print("  ... and %d more" % (len(rows) - 50))
         if not rows:
             print("  Nobody, which either means you are on top of it or the log is")
-            print("  empty. `%s ledger.py stats` says which." % PY)
+            print("  empty. `%s %s stats` says which." % (PY, _typed("ledger.py")))
     elif cmd == "summary":
         s = summary()
         total = sum(s["states"].values())
@@ -252,7 +267,8 @@ def main(argv):
         for k, v in sorted(s["tiers"].items(), key=lambda x: -x[1]):
             print("  %-14s %d" % (k, v))
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/derive.py", "    python " + _typed("derive.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 

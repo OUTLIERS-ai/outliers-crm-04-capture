@@ -32,9 +32,9 @@ tool, or not at all. Keeping the two apart means the ranking can be trusted on i
 own and tested without touching a network.
 
 Use:
-    python refresh.py due               who is due a re-check, most overdue first
-    python refresh.py tiers             how many people are on each tier
-    python refresh.py checked "<who>"   record that you have re-checked somebody
+    python _engine/refresh.py due               who is due a re-check, most overdue first
+    python _engine/refresh.py tiers             how many people are on each tier
+    python _engine/refresh.py checked "<who>"   record that you have re-checked somebody
 """
 
 import sys
@@ -50,6 +50,21 @@ import settings                                            # noqa: E402
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 # Events that mean "their details were looked at on this date".
 CHECK_EVENTS = ("checked", "details_changed")
@@ -202,7 +217,7 @@ def main(argv):
             print("  ... and %d more" % (len(rows) - 60))
         if not rows:
             print("  Nobody. Either everything is fresh, or the log is empty.")
-            print("  `%s ledger.py stats` says which." % PY)
+            print("  `%s %s stats` says which." % (PY, _typed("ledger.py")))
     elif cmd == "tiers":
         t = tiers()
         total = sum(t.values())
@@ -222,7 +237,8 @@ def main(argv):
         mark_checked(pid, source="by hand", changed=changed)
         print("recorded: %s %s" % (pid, "details changed" if changed else "checked"))
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/refresh.py", "    python " + _typed("refresh.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 

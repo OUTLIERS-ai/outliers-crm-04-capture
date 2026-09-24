@@ -25,9 +25,9 @@ Use:
     canonical  = schema.adapt(fields)
 
 CLI:
-    python schema.py contract            # print the loaded contract
-    python schema.py check <note.md>     # validate one record
-    python schema.py sweep [--limit N]   # check your records, write nothing
+    python _engine/schema.py contract            # print the loaded contract
+    python _engine/schema.py check <note.md>     # validate one record
+    python _engine/schema.py sweep [--limit N]   # check your records, write nothing
 """
 
 import json
@@ -41,6 +41,21 @@ import identity                                    # noqa: E402
 # The command a member types to start Python: `python3` on a Mac, which has no plain
 # `python` command, and `python` everywhere else, as the Windows guides print it.
 PY = "python3" if sys.platform == "darwin" else "python"
+
+
+def _typed(name):
+    """The program `name` (it sits beside this file) as the member types it from the folder
+    they are in: `_engine/<name>` from the CRM folder, `<name>` from inside `_engine`."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+    try:
+        typed = os.path.relpath(path)
+    except ValueError:                      # the member is on another drive
+        typed = path
+    if typed.startswith(".."):
+        typed = path
+    typed = typed.replace("\\", "/")
+    return '"%s"' % typed if " " in typed else typed
 
 CONTRACT_PATH = Path(__file__).resolve().parent / "_schema" / "person.json"
 
@@ -248,7 +263,8 @@ def main(argv):
             lim = int(argv[argv.index("--limit") + 1])
         _sweep(lim)
     else:
-        print(__doc__.replace("    python ", "    %s " % PY))
+        print(__doc__.replace("    python _engine/schema.py", "    python " + _typed("schema.py"))
+              .replace("    python ", "    %s " % PY))
         return 2
     return 0
 
