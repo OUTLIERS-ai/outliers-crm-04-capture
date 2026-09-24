@@ -25,6 +25,10 @@ import sys
 from datetime import date
 from pathlib import Path
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 LAYER = 4
 LAYER_NAME = "Capture"
 NEEDS_LAYER = 3
@@ -222,8 +226,8 @@ def layer_note(answers, home):
             "Nothing is capturing those, so anything that comes from them will be "
             "missing from the log. That is worth knowing rather than discovering. "
             "Either find an export for them, or record the important ones with "
-            "`python _engine/ledger.py` yourself when they matter.\n"
-            % ", ".join(missing))
+            "`%s _engine/ledger.py` yourself when they matter.\n"
+            % (", ".join(missing), PY))
 
     return """# Layer {n} - {name}
 
@@ -281,17 +285,17 @@ regardless of when their turn was due. A reply matters more than a rota.
 
 Try it:
 
-    python _engine/collect.py list
-    python _engine/collect.py run messages <file.csv> --dry-run
-    python _engine/collect.py run messages <file.csv>
-    python _engine/collect.py all
-    python _engine/refresh.py due
-    python _engine/derive.py quiet 60
+    {py} _engine/collect.py list
+    {py} _engine/collect.py run messages <file.csv> --dry-run
+    {py} _engine/collect.py run messages <file.csv>
+    {py} _engine/collect.py all
+    {py} _engine/refresh.py due
+    {py} _engine/derive.py quiet 60
 
 **What it leaves for Layer 5.** A program can record that something happened. It
 cannot tell you whether this person is worth an hour of your week, whether a reply
 is warm or merely polite, or what to say back. That is judgement, and it is next.
-""".format(n=LAYER, name=LAYER_NAME, missing=missing_text)
+""".format(n=LAYER, name=LAYER_NAME, missing=missing_text, py=PY)
 
 
 def staging_readme():
@@ -365,8 +369,8 @@ def build(home, answers):
             existing = []
     write(p, json.dumps({
         "_comment": [
-            "The sources you capture from. `python _engine/collect.py all` runs each "
-            "one in turn.",
+            "The sources you capture from. `%s _engine/collect.py all` runs each "
+            "one in turn." % PY,
             "collector must be one of: messages, meetings, connections.",
             "Running the same file twice is safe: rows already in the log are skipped.",
         ],
@@ -449,13 +453,13 @@ def point_it_at_something(home, answers):
     raw = ask("Path to the file, or Enter to skip", default="")
     if not raw.strip():
         say(DIM + "  Skipped. When you have one:" + OFF)
-        say(DIM + "    python _engine/collect.py run connections <file.csv> --dry-run" + OFF)
+        say(DIM + "    %s _engine/collect.py run connections <file.csv> --dry-run" % PY + OFF)
         return None
 
     path = Path(raw.strip().strip('"').strip("'")).expanduser()
     if not path.exists():
         say("  Cannot find that file. Skipping; you can run it later with:")
-        say("    python _engine/collect.py run connections <file.csv>")
+        say("    %s _engine/collect.py run connections <file.csv>" % PY)
         return None
 
     kind = guess_collector(path)
@@ -553,7 +557,7 @@ def read_a_history(home):
     say("  nobody.")
     who = ask("A name, a link or an email address (or Enter to skip)", default="")
     if not who.strip():
-        say(DIM + "  Skipped. Any time:  python _engine/ledger.py person \"a name\"" + OFF)
+        say(DIM + "  Skipped. Any time:  %s _engine/ledger.py person \"a name\"" % PY + OFF)
         return
     identity.forget()
     pid = identity.resolve(who.strip(), vault=home)
@@ -596,9 +600,9 @@ def finish(home, answers):
         say("  rather than discovering later.")
         say()
     say("  Try:")
-    say("    python _engine/collect.py all         re-run every source")
-    say("    python _engine/refresh.py due         whose details need a look")
-    say("    python _engine/derive.py quiet 60     who has gone quiet")
+    say("    %s _engine/collect.py all         re-run every source" % PY)
+    say("    %s _engine/refresh.py due         whose details need a look" % PY)
+    say("    %s _engine/derive.py quiet 60     who has gone quiet" % PY)
     say()
     say("  Read: _layers/Layer %d - %s.md" % (LAYER, LAYER_NAME))
     say()

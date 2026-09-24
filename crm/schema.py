@@ -38,6 +38,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import identity                                    # noqa: E402
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 CONTRACT_PATH = Path(__file__).resolve().parent / "_schema" / "person.json"
 
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}")
@@ -244,7 +248,7 @@ def main(argv):
             lim = int(argv[argv.index("--limit") + 1])
         _sweep(lim)
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 

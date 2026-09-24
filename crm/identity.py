@@ -51,6 +51,10 @@ import sys
 import unicodedata
 from pathlib import Path
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 _FRONT = re.compile(r"^\ufeff?---\s*\n(.*?)\n---", re.S)
 _URL_IN = re.compile(r"(?:https?://)?(?:[\w-]+\.)?linkedin\.com/in/([^/?#\s\"']+)", re.I)
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
@@ -478,7 +482,7 @@ def main(argv):
             for f in files:
                 print("      %s" % f)
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 

@@ -47,6 +47,10 @@ import derive                                              # noqa: E402
 import ledger                                              # noqa: E402
 import settings                                            # noqa: E402
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 # Events that mean "their details were looked at on this date".
 CHECK_EVENTS = ("checked", "details_changed")
 
@@ -198,7 +202,7 @@ def main(argv):
             print("  ... and %d more" % (len(rows) - 60))
         if not rows:
             print("  Nobody. Either everything is fresh, or the log is empty.")
-            print("  `python ledger.py stats` says which.")
+            print("  `%s ledger.py stats` says which." % PY)
     elif cmd == "tiers":
         t = tiers()
         total = sum(t.values())
@@ -218,7 +222,7 @@ def main(argv):
         mark_checked(pid, source="by hand", changed=changed)
         print("recorded: %s %s" % (pid, "details changed" if changed else "checked"))
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 

@@ -60,6 +60,10 @@ import ledger                                              # noqa: E402
 import settings                                            # noqa: E402
 from safe_write import write_text                          # noqa: E402
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 try:
     import identity
 except ImportError:                                        # Layer 2 not installed
@@ -522,12 +526,12 @@ def main(argv):
         results = run_all(dry_run=dry)
         if not results:
             print("No sources listed. Add one:")
-            print("  python collect.py run messages <file.csv>")
+            print("  %s collect.py run messages <file.csv>" % PY)
             return 0
         for label, stats in results.items():
             _report(label + ("   (dry run, nothing written)" if dry else ""), stats)
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 

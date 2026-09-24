@@ -52,6 +52,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import settings                                            # noqa: E402
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 # The base vocabulary. Deliberately small and closed. Your own additions come from
 # `_engine/settings.json`, which the Layer 3 installer wrote from your answers.
 BASE_TYPES = {
@@ -251,7 +255,7 @@ def main(argv):
         for k in sorted(known):
             print("  %-18s %s" % (k, known[k]))
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 

@@ -45,6 +45,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ledger                                              # noqa: E402
 import settings                                            # noqa: E402
 
+# The command a member types to start Python: `python3` on a Mac, which has no plain
+# `python` command, and `python` everywhere else, as the Windows guides print it.
+PY = "python3" if sys.platform == "darwin" else "python"
+
 # Which events count as an exchange, for counting how much conversation there has
 # been. One each way is a reply; ten each way is a relationship.
 EXCHANGE_EVENTS = ("message_sent", "reply_received")
@@ -233,7 +237,7 @@ def main(argv):
             print("  ... and %d more" % (len(rows) - 50))
         if not rows:
             print("  Nobody, which either means you are on top of it or the log is")
-            print("  empty. `python ledger.py stats` says which.")
+            print("  empty. `%s ledger.py stats` says which." % PY)
     elif cmd == "summary":
         s = summary()
         total = sum(s["states"].values())
@@ -248,7 +252,7 @@ def main(argv):
         for k, v in sorted(s["tiers"].items(), key=lambda x: -x[1]):
             print("  %-14s %d" % (k, v))
     else:
-        print(__doc__)
+        print(__doc__.replace("    python ", "    %s " % PY))
         return 2
     return 0
 
